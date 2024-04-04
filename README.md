@@ -1,15 +1,15 @@
-# ESP32-Service-Now-Temp-Monitor
-Code to make a ESP 32 read temp and post to a Service Now instance.  Features include:
-.Built-in captive portal to set up to wifi
-.forms to capture the server path and password/username 
-.ability to reset the wifi settings without changing code
-.ability to POST results back to a ServiceNow instance (or any other platform with a similar table structure)
+# ESP32-Service-Now-Temp-Monitor #
+## Code to make a ESP 32 read temp and post to a Service Now instance.  Features include: ##
+*Built-in captive portal to set up to wifi
+*forms to capture the server path and password/username 
+*ability to reset the wifi settings without changing code
+*ability to POST results back to a ServiceNow instance (or any other platform with a similar table structure)
 
 Still in progress:
-.Ability to change field names
-.Ability to GET a new refresh time
-.code optimization
-.captive portal customization
+* Ability to change field names
+* Ability to GET a new refresh time
+* code optimization
+* captive portal customization
 
 Libaries needed in Arduino IDE:
 .For the DHT sensor
