@@ -12,7 +12,7 @@
 
 
 //Timer variables
-unsigned long lastTime =0;
+unsigned long lastTime =millis();
 unsigned long timerDelay = 600000;
 
 
@@ -282,11 +282,8 @@ Serial.println(" seconds");
   }
 } 
 
-// Post request
+// Post and Get requests
 
-if ((millis()-lastTime) > 0){
-  lastTime = 0;
-}
 if ((millis() - lastTime) > timerDelay) {
 if(WiFi.status()== WL_CONNECTED){
   HTTPClient httpClient;
@@ -298,22 +295,28 @@ if(WiFi.status()== WL_CONNECTED){
   httpClient.addHeader("Content-Type","application/json");
   httpClient.setAuthorizationType("Basic");
   httpClient.setAuthorization(username.c_str(),password.c_str());
-    String t1 = String(dht.readTemperature(true));   
-    String h1 = String(dht.readHumidity());
-    String responceBuild = "{\"humidity\":\""+h1+"\",\"temperature\":\""+t1+"\",\"mac_address\":\""+WiFi.macAddress()+"\"}";
+  //create a string array so I can customize the number and name variables sent
+  String fieldValue[3][2] = {
+    {"temperature", String(dht.readTemperature(true))},  
+    {"humidity", String(dht.readHumidity())},
+    {"mac_address", WiFi.macAddress()}
+  };
+
+    String responceBuild = "{\""+fieldValue[0][0]+"\":\""+fieldValue[0][1]+"\",\""+fieldValue[1][0]+"\":\""+fieldValue[1][1]+"\",\""+fieldValue[2][0]+"\":\""+fieldValue[2][1]+"\"}";
     int httpResponseCode = httpClient.POST(responceBuild); 
       Serial.print("HTTP Response code: ");
+      Serial.println (responceBuild);
       Serial.println(httpResponseCode);
 
   //Get data from ServiceNow (change update time)    
       httpClient.end();
+}
+else {
+      Serial.println("WiFi Disconnected");
+    }
       lastTime = millis();
     }
-    else {
-      Serial.println("WiFi Disconnected");
-    }}
-    
-
   }
+
 
 
