@@ -36,5 +36,5 @@
 https://github.com/spudwoot/EnviromentalMonitoring
 
 ### Wiring Diagram ###
-![alt text](https://github.com/spudwoot/ESP32-Service-Now-Temp-Monitor/blob/[branch]/image.jpg?raw=true)
+![alt text](https://github.com/spudwoot/ESP32-Service-Now-Temp-Monitor/blob/main/ESP32-Wiring%20.png?raw=true)
 
