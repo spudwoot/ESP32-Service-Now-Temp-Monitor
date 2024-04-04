@@ -1,6 +1,6 @@
 # ESP32-Service-Now-Temp-Monitor #
 
-## Code to make a ESP 32 read temp and post to a Service Now instance.##
+## Code to make a ESP 32 read temp and post to a Service Now instance. ##
 
 ### Features include: ###
 * Built-in captive portal to set up to wifi
