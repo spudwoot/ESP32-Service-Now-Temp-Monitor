@@ -30,7 +30,7 @@
   * WiFi.H  https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi
 
 ### Known bug at this time ###
-* Can't get the delay to work properly
+* 
 
 ### Link to ServiceNow Application ##
 https://github.com/spudwoot/EnviromentalMonitoring
