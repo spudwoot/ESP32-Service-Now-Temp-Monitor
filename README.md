@@ -2,11 +2,11 @@
 
 ## Code to make a ESP 32 read temp and post to a Service Now instance.##
 
-###Features include: ###
-*Built-in captive portal to set up to wifi
-*forms to capture the server path and password/username 
-*ability to reset the wifi settings without changing code
-*ability to POST results back to a ServiceNow instance (or any other platform with a similar table structure)
+### Features include: ###
+* Built-in captive portal to set up to wifi
+* forms to capture the server path and password/username 
+* ability to reset the wifi settings without changing code
+* ability to POST results back to a ServiceNow instance (or any other platform with a similar table structure)
 
 ### Still in progress: ###
 * Ability to change field names
