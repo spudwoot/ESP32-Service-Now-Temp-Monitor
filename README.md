@@ -35,3 +35,6 @@
 ### Link to ServiceNow Application ##
 https://github.com/spudwoot/EnviromentalMonitoring
 
+### Wiring Diagram ###
+![alt text](https://github.com/spudwoot/ESP32-Service-Now-Temp-Monitor/blob/[branch]/image.jpg?raw=true)
+
