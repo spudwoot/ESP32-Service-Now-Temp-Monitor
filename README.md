@@ -19,15 +19,15 @@
   * Adafruit Unified Sensor - https://github.com/adafruit/Adafruit_Sensor
   * DHT sensor library - https://github.com/adafruit/DHT-sensor-library
 
-*for the captive portal
+* For the captive portal
   * ESP Connect - https://github.com/ayushsharma82/ESPConnect - simple connect portal
   * AsyncTCP - https://github.com/dvarrel/AsyncTCP
   * ESPAsyncWebServer - https://github.com/lacamera/ESPAsyncWebServer
 
-*for the REST and other config
-  *HTTP Client -https://github.com/amcewen/HttpClient
- * Preferences (to write settings to the EEPROM) - https://github.com/vshymanskyy/Preferences
-  *WiFi.H  https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi
+* For the REST and other config
+  * HTTP Client -https://github.com/amcewen/HttpClient
+  * Preferences (to write settings to the EEPROM) - https://github.com/vshymanskyy/Preferences
+  * WiFi.H  https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi
 
-###Known bug at this time###
-*Can't get the delay to work properly
+### Known bug at this time ###
+* Can't get the delay to work properly
