@@ -1,25 +1,28 @@
+#include <ESPConnect.h>
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
-#include <ESPConnect.h>	
 #include <AsyncTCP.h>
 #include <Preferences.h>
 #include <HTTPClient.h>
+#include <Arduino_JSON.h>
 #include "Connection.h"
-#include "Connection2.h"
-#include "Connection3.h"
-
+#include "index.h"
 
 //Timer variables
 unsigned long lastTime =millis();
-unsigned long timerDelay = 600000;
+unsigned long timerDelay = 30000;
 
 
-// variables to get server connection
+// variables to get server connection and fields
 const char* serverD = "serverD";
 const char* susername = "susername";
 const char* spassword = "spassword";
+const char* restData[32] = {"get-post","serverD","susername","spassword","fieldC","field1","field1V","static1","field2","field2V","static2",   
+"field3","field3V","static3","field4","field4V","static4","field5","field5V","static5","field6","field6V","static6",
+"field7","field7V","static7","field8","field8V","static8","field9","field9V","static9"};
+String fields[9][3];
 
 
 // config for reset button
@@ -72,76 +75,6 @@ String readESPMac(){
       Serial.println(m);
     return String(m);
 }
-//html for home page
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-  <style>
-    html {
-     font-family: Arial;
-     display: inline-block;
-     margin: 0px auto;
-     text-align: center;
-    }
-    h2 { font-size: 3.0rem; }
-    p { font-size: 3.0rem; }
-    .units { font-size: 1.2rem; }
-    .dht-labels{
-      font-size: 1.5rem;
-      vertical-align:middle;
-      padding-bottom: 15px;
-    }
-  </style>
-</head>
-<body>
-  <h2>Current Monitor Status</h2>
-  <p>
-    <i class="fas fa-thermometer-half" style="color:#059e8a;"></i> 
-    <span class="dht-labels">Temperature</span> 
-    <span id="temperature">%TEMPERATURE%</span>
-    <sup class="units">&deg;F</sup>
-  </p>
-  <p>
-    <i class="fas fa-tint" style="color:#00add6;"></i> 
-    <span class="dht-labels">Humidity</span>
-    <span id="humidity">%HUMIDITY%</span>
-    <sup class="units">&percnt;</sup>
-  </p>
-    <p>
-    <i class="fas fa-wifi" style="color:#00add6;"></i> 
-    <span class="dht-labels">Mac</span>
-    <span id="mac">%MAC%</span>
-  </p>
-  <p>
-  <h1><li><a href="/Connection.html">Set up Service Now Rest API</a></li></h1>
-  </P>
-</body>
-<script>
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("temperature").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/temperature", true);
-  xhttp.send();
-}, 10000 ) ;
-
-setInterval(function ( ) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("humidity").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/humidity", true);
-  xhttp.send();
-}, 10000 ) ;
-</script>
-</html>)rawliteral";
 
 // Replaces placeholder with DHT values
 String processor(const String& var){
@@ -189,76 +122,50 @@ void setup(){
   Serial.println(WiFi.localIP());
 
   // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html, processor);
-  });
+ // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+ //   request->send_P(200, "text/html", index_html, processor);
+//  });
   server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", readDHTTemperature().c_str());
   });
   server.on("/humidity", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", readDHTHumidity().c_str());
   });
+    server.on("/mac", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", readESPMac().c_str());
+  });
 
-  //routes for other pages
+  //routes for web pages
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("Web Server: Homepage");
+    String html = HTML_CONTENT_HOME;  // Use the HTML content from the index.h file
+    request->send(200, "text/html", html);
+  });
+
   server.on("/Connection.html", HTTP_GET, [](AsyncWebServerRequest *request) {
     Serial.println("Web Server: Connection 1");
     String html = HTML_CONTENT_Connection;  // Use the HTML content from the index.h file
     request->send(200, "text/html", html);
   });
 
-    server.on("/Connection2.html", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("Web Server: Connection 2");
-    String html = HTML_CONTENT_Connection2;  // Use the HTML content from the index.h file
-    request->send(200, "text/html", html);
-  });
-
-    server.on("/Connection3.html", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("Web Server: Connection 3");
-    String html = HTML_CONTENT_Connection3;  // Use the HTML content from the index.h file
-    request->send(200, "text/html", html);
-  });
-
-
-
-  //test to see if I captured the variables as well as read them into EEProm
+  //capture the variables from the input form and write them to flash
   preferences.begin("snowString",false);
   server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
     String inputMessage;
-    String inputParam;
-    String page;
-    // GET server value on <ESP_IP>/get?server=<inputMessage>
-    if (request->hasParam(serverD)) {
-      inputMessage = request->getParam(serverD)->value();
-      inputParam = serverD;
-      preferences.putString("snowServer", inputMessage);
-      Serial.println(inputMessage);
-    request->send(200, "text/html", "Server set to "+ inputMessage +"<br><a href=""/Connection2.html"">Click Here to input the Username</a>");
+   // loop to capture all the form data.   
+      for (int i = 0; i <= 31; i++) {
+        if (request->hasParam(restData[i])) {
+      inputMessage = request->getParam(restData[i])->value();
+      preferences.putString(restData[i], inputMessage);
+      }
+    }
+    request->send(200, "text/html", "Server set to "+ inputMessage +"<br><a href=""/index.html"">Click Here to go back to the homepage</a>");
 
-    }
-    // GET input2 value on <ESP_IP>/get?input2=<inputMessage>
-    else if (request->hasParam(susername)) {
-      inputMessage = request->getParam(susername)->value();
-      inputParam = susername;
-      preferences.putString("snowUser", inputMessage);
-      Serial.println(inputMessage);
-    request->send(200, "text/html", "Username set to "+ inputMessage +"<br><a href=""/Connection3.html"">Click Here to input the Password</a>");
-    }
-    // GET input3 value on <ESP_IP>/get?input3=<inputMessage>
-    else if (request->hasParam(spassword)) {
-      inputMessage = request->getParam(spassword)->value();
-      inputParam = spassword;
-      preferences.putString("snowPassword", inputMessage);
-      Serial.println(inputMessage);
-      Serial.println(preferences.getString("snowServer","did not work"));
-    request->send(200, "text/html", "Password set to "+ inputMessage +"<br><a href=""/"">Click Here to go back to the Home Page</a>"); 
-    }
-    else {
-      inputMessage = "No message sent";
-      inputParam = "none";
-    }
 });
-  // Start server
-  // build get string
+
+
+//set up a array of the field values
 
 
   server.begin();
@@ -277,46 +184,127 @@ Serial.println(" seconds");
  Serial.println("Reseting");
  delay(1000);
   ESPConnect.erase();
+  preferences.clear();
   ESP.restart();
  resettime = 10;
   }
 } 
 
-// Post and Get requests
+// Post requests
 
 if ((millis() - lastTime) > timerDelay) {
 if(WiFi.status()== WL_CONNECTED){
   HTTPClient httpClient;
 //Post data back to service now
-  httpClient.begin(preferences.getString("snowServer","did not work"));
-  String username = preferences.getString("snowUser","did not work");
-  String password = preferences.getString("snowPassword","did not work");
+  httpClient.begin(preferences.getString("serverD","did not work"));
+  String username = preferences.getString("susername","did not work");
+  String password = preferences.getString("spassword","did not work");
   httpClient.addHeader("Accept","application/json");
   httpClient.addHeader("Content-Type","application/json");
   httpClient.setAuthorizationType("Basic");
   httpClient.setAuthorization(username.c_str(),password.c_str());
   //create a string array so I can customize the number and name variables sent
-  String fieldValue[3][2] = {
-    {"temperature", String(dht.readTemperature(true))},  
-    {"humidity", String(dht.readHumidity())},
-    {"mac_address", WiFi.macAddress()}
-  };
+  int pCount = 5;
+for (int a = 0; a <= 8; a++) {
+  for (int b = 0; b <= 2; b++) { 
+    fields[a][b]= preferences.getString(restData[pCount],"wrong");
+    pCount = pCount + 1;
+  }}
+  //build the responce
+  // determine number of fields
+  int fieldNum = 0;
+  String check = preferences.getString(restData[4],"wrong");
+      for (char c : check) {
+        if (c >= '0' && c <= '9') {
+            fieldNum = fieldNum * 10 + (c - '0');
+        }}
 
-    String responceBuild = "{\""+fieldValue[0][0]+"\":\""+fieldValue[0][1]+"\",\""+fieldValue[1][0]+"\":\""+fieldValue[1][1]+"\",\""+fieldValue[2][0]+"\":\""+fieldValue[2][1]+"\"}";
-    int httpResponseCode = httpClient.POST(responceBuild); 
-      Serial.print("HTTP Response code: ");
-      Serial.println (responceBuild);
-      Serial.println(httpResponseCode);
-
-  //Get data from ServiceNow (change update time)    
-      httpClient.end();
+// build my string in a loop
+String responceBuild2 = "{";
+for (int i = 0; i<=fieldNum-1;i++){
+  if (fields[i][1]=="Temperature") {
+    responceBuild2 = responceBuild2+"\""+fields[i][0]+"\":\""+String(dht.readTemperature(true));
+    } else {
+      if (fields[i][1]=="Humidity") {
+        responceBuild2 = responceBuild2+"\""+fields[i][0]+"\":\""+String(dht.readHumidity());
+        } else {
+          if (fields[i][1]=="MAC_address") {
+            responceBuild2 = responceBuild2+"\""+fields[i][0]+"\":\""+WiFi.macAddress();
+            } else {
+              if (fields[i][1]=="Water_alert") {
+                responceBuild2 = responceBuild2+"\""+fields[i][0]+"\":\""+"false";
+                } else {
+                  if (fields[i][1]=="reboot_time") {
+                    responceBuild2 = responceBuild2+"\""+fields[i][0]+"\":\""+"not in play yet";
+                    } else {
+                      if (fields[i][1]=="static_entry") {
+                        responceBuild2 = responceBuild2+"\""+fields[i][0]+"\":\""+fields[i][2];
+                      } 
+                  }
+              }
+          }
+      }
+     }
+if (i <=fieldNum-2){
+responceBuild2 = responceBuild2+"\",";
+  }  
 }
-else {
-      Serial.println("WiFi Disconnected");
-    }
-      lastTime = millis();
-    }
+
+//
+responceBuild2 = responceBuild2+"\"}";
+
+    
+    int httpResponseCode = httpClient.POST(responceBuild2); 
+      Serial.println("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      Serial.println (responceBuild2);
+      httpClient.end();
+
+  //Get data from ServiceNow (change update time) 
+if(preferences.getString("get-post","did not work")=="getpost"){
+  httpClient.begin(preferences.getString("serverD","did not work"));
+  username = preferences.getString("susername","did not work");
+  password = preferences.getString("spassword","did not work");
+  httpClient.addHeader("Accept","application/json");
+  httpClient.addHeader("Content-Type","application/json");
+  httpClient.setAuthorizationType("Basic");
+  httpClient.setAuthorization(username.c_str(),password.c_str());
+  int httpResponseCode = httpClient.GET();
+
+  String payload = "{}"; 
+
+  if (httpResponseCode>0) {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    payload = httpClient.getString();
   }
+  else {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  // Free resources
+  httpClient.end();
+
+
+//parse responce with JSON (change "refresh" to whatever the key name is)
+Serial.println(payload);
+JSONVar updateTime = JSON.parse(payload);
+Serial.println(updateTime["refresh"]);
+String suT = updateTime["refresh"];
+unsigned long ut = suT.toInt();
+//convert minutes to miliseconds
+timerDelay = 60000*ut;
+Serial.println(ut);
+Serial.println(timerDelay);
+}
+
+}
+
+lastTime = millis();
+    
+}
+
+    }
 
 
 
