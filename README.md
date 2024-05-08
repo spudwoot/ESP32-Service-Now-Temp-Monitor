@@ -7,12 +7,10 @@
 * forms to capture the server path and password/username 
 * ability to reset the wifi settings without changing code
 * ability to POST results back to a ServiceNow instance (or any other platform with a similar table structure)
-* Ability to change field names
+* Ability to change field names without changing code
 * Ability to GET a new refresh time
 
 ### Still in progress: ###
-* Ability to change field names
-* Ability to GET a new refresh time
 * code optimization
 * captive portal customization
 
